@@ -4,23 +4,31 @@ import seaborn as sns
 
 main_df = pd.read_csv("../Dataset/train_radiomics_occipital_CONTROL.csv")
 
-def main_info(df=main_df):
-    print(main_df.shape) 
-    # output: 305 linhas, 2181 colunas
+####################
+# Matplotlib Plots #
 
 def show_histogram(title="histogram",df=main_df):
     plt.title(title)
     sns.histplot(df)
     plt.show()
 
-def show_boxplot(columns=main_df.columns,df=main_df):
+def show_boxplot(title="boxplot",columns=main_df.columns,df=main_df):
     df[columns].boxplot()
-    plt.title("Outliers Boxplot")
+    plt.title(title)
     plt.show()
+
+def show_heatmap(title="correlation heatmap",df=main_df.select_dtypes(include="number")):
+    plt.title(title)
+    sns.heatmap(df.corr(),annot=True,cmap="coolwarm",linewidths=0.5)
+    plt.show()
+
+
+############
+# Outliers #
 
 # IQR method 
 ## considera como outliers os dados que estao 1.5*IQR acima e abaixo do primeiro e terceiro quartil, respetivamente. IQR = Q3 - Q1
-def outliers_detection(column, df=main_df):
+def detect_outliers(column, df=main_df):
     Q1 = df[column].quantile(0.25)
     Q3 = df[column].quantile(0.75)
     IQR = Q3 - Q1
@@ -30,6 +38,14 @@ def outliers_detection(column, df=main_df):
     # Filtrar os outliers
     outliers = df[(df[column] < lower_bound) | (df[column] > upper_bound)]
     return outliers[column]
+
+
+#####################
+# Basic Exploration #
+
+def main_exploration(df=main_df):
+    print(main_df.shape) 
+    # output: 305 linhas, 2181 colunas
 
 def categorical_exploration(df=main_df):
     """
@@ -44,33 +60,18 @@ def categorical_exploration(df=main_df):
     for column in categorical_df.columns:
         show_histogram(f"{column} histogram",categorical_df[column])
 
-    """
-    output:
-        173 (43%) - man
-        132 (57%) - woman
-        # relativamente equilibrado
-
-        CN-CN      96
-        MCI-MCI    71
-        MCI-AD     68
-        AD-AD      60
-        CN-MCI     10
-    """
-
-
 
 def numerical_exploration(df=main_df):
+    # age exploration
     age_exploration = df["Age"].describe()
+    print(age_exploration)
     show_histogram("Age Histogram",df["Age"])
-    """
-    output:
-        max - 91
-        min - 55.3
-        mean - 75.1
-    """
-    show_boxplot(["Age"],df)
-    print(outliers_detection("Age"))
+    show_boxplot("Outliers Boxplot",["Age"],df)
+    print(detect_outliers("Age"))
 
+
+
+    show_heatmap(df=df[['Age', 'lbp-3D-k_ngtdm_Busyness', 'lbp-3D-k_ngtdm_Coarseness']])
 
 
 #main_info()
