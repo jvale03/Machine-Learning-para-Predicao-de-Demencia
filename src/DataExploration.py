@@ -23,9 +23,11 @@ def show_boxplot(title="boxplot",columns=main_df.columns,df=main_df):
     plt.title(title)
     plt.show()
 
-def show_heatmap(title="correlation heatmap",df=main_df.select_dtypes(include="number")):
+def show_heatmap(title="correlation heatmap",df=main_df):
+    df = df.select_dtypes(include="number")
     plt.figure(figsize=(13,8))
-    plt.subplots_adjust(bottom=0.17)
+    plt.subplots_adjust(bottom=0.25,left=0.22,right=0.95)
+    plt.xticks(rotation=15)
     plt.title(title)
     sns.heatmap(df.corr(),annot=True,cmap="coolwarm",linewidths=0.5)
     plt.show()
@@ -52,8 +54,8 @@ def detect_outliers(column, df=main_df):
 
 # esta função faz um loop de 7 em 7 colunas por todas as colunas do dataset para uma analise geral dos outliers.
 # esta operacao é demorada e nao muito boa porque 2181 / 7 = 300 vezes
-def explore_outliers(df=main_df):
-    number_df = df.select_dtypes(include="number")
+def explore_outliers(df=main_df,columns=main_df.columns):
+    number_df = df[columns].select_dtypes(include="number")
     n_columns = number_df.columns
     # normalização para ser visualmente perceptivel nos plots
     scaler = MinMaxScaler()
@@ -68,6 +70,7 @@ def explore_outliers(df=main_df):
 def main_exploration(df=main_df):
     print(main_df.shape) 
     # output: 305 linhas, 2181 colunas
+
 
 def categorical_exploration(df=main_df):
     """
@@ -89,22 +92,55 @@ def numerical_exploration(df=main_df):
     show_histogram("Age Histogram",df["Age"])
     print(detect_outliers("Age"))
 
-    # show_heatmap()
 
+###########################
+# Diagnostics Exploration #
 
 def diagnostics_versions_explorer(df=main_df):
     diagnostics_versions_columns = ["diagnostics_Versions_PyRadiomics","diagnostics_Versions_Numpy","diagnostics_Versions_SimpleITK","diagnostics_Versions_PyWavelet","diagnostics_Versions_Python"] 
 
-    diagnostics_df = df[diagnostics_versions_columns]
-
-    for column in diagnostics_df.columns:
+    for column in diagnostics_versions_columns:
         print(column,": ")
-        values = diagnostics_df[column].unique()
+        values = df[column].unique()
         print(values)
 
+# é necessário explorar melhor
+def diagnostics_image_explorer(df=main_df):
+    diagnostics_image_columns = ["diagnostics_Image-original_Dimensionality","diagnostics_Image-original_Spacing","diagnostics_Image-original_Size","diagnostics_Image-original_Mean","diagnostics_Image-original_Minimum","diagnostics_Image-original_Maximum"]
 
+    for column in diagnostics_image_columns:
+        print(column,": ")
+        values = df[column].unique()
+        print(values)
+        show_histogram(title=column,df=df[column])
 
-# main_info()
-# categorical_exploration()
-# numerical_exploration()
-# explore_outliers()
+    explore_outliers(columns=diagnostics_image_columns)
+
+    print(df[diagnostics_image_columns].describe())
+    print(df[diagnostics_image_columns].info())
+
+# é preciso explorar muito melhor
+def diagnostics_mask_explorer(df=main_df):
+    diagnostics_mask_columns = ["diagnostics_Mask-original_Spacing","diagnostics_Mask-original_Size","diagnostics_Mask-original_BoundingBox","diagnostics_Mask-original_VoxelNum","diagnostics_Mask-original_VolumeNum","diagnostics_Mask-original_CenterOfMassIndex","diagnostics_Mask-original_CenterOfMass"]
+
+    
+    for column in diagnostics_mask_columns:
+        print(column,": ")
+        values = df[column].unique()
+        print(values)
+        show_histogram(title=column,df=df[column])
+    
+
+    print(detect_outliers("diagnostics_Mask-original_VoxelNum"))
+    print(detect_outliers("diagnostics_Mask-original_VolumeNum"))
+    explore_outliers(columns=diagnostics_mask_columns)
+    
+    print(df[diagnostics_mask_columns].describe(),"\n")
+    print(df[diagnostics_mask_columns].info())
+
+# ainda nao consigo tirar conclusões ao certo
+def masks_images_correlation(df=main_df):
+    diagnostics = ["diagnostics_Mask-original_Spacing","diagnostics_Mask-original_Size","diagnostics_Mask-original_BoundingBox","diagnostics_Mask-original_VoxelNum","diagnostics_Mask-original_VolumeNum","diagnostics_Mask-original_CenterOfMassIndex","diagnostics_Mask-original_CenterOfMass","diagnostics_Image-original_Spacing","diagnostics_Image-original_Size","diagnostics_Image-original_Mean","diagnostics_Image-original_Maximum"]
+
+    show_heatmap(df=df[diagnostics])
+

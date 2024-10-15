@@ -47,6 +47,28 @@ Relatively balanced
 - **PyWavelet**: 1.1.1
 - **Python**: 3.7.7
 
+#### Diagnostic Images
+- **Dimensionality**: 3
+- **Spacing**: (1.0, 1.0, 1.0)
+- **Size**: (256, 256, 256)
+- **Minimum**: ainda nada concluído
+- **Mean**: ainda nada concluído
+- **Maximum**: ainda nada concluído
+
+#### Diagnostic Masks
+- **Spacing**: (1.0, 1.0, 1.0)
+- **Size**: (256, 256, 256)
+- **BoundingBox**: ainda nada concluído
+- **VoxelNum**: ainda nada concluído
+- **VolumeNum**: [1,2,3,4] -> Outliers: [1,3,4]
+- **CenterOfMassIndex**: ainda nada concluído
+- **CenterOfMass**: ainda nada concluído
+
+#### Configurations
+- **Settings**: valor único para todas as entradas 
+- **EnabledImageTypes**: valor único para todas as entradas
+
+unica conclusao aqui é que *CenterOfMassIndex* e *CenterOfMass* têm exatamente os mesmos valores, dar `drop` posteriormente.
 
 ## Data Preprocessing
 
