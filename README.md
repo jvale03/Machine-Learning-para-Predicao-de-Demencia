@@ -72,6 +72,9 @@ unica conclusao aqui é que *CenterOfMassIndex* e *CenterOfMass* têm exatamente
 
 ## Data Preprocessing
 
+- `remove_nunique_values()` com este método removemos todas as colunas que têm todas as entradas iguais. 2181 -> 2034 features
+
+
 ## Undefined
 
 
