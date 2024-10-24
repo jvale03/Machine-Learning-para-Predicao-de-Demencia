@@ -58,21 +58,21 @@ Relatively balanced
 #### Diagnostic Masks
 - **Spacing**: (1.0, 1.0, 1.0)
 - **Size**: (256, 256, 256)
-- **BoundingBox**: ainda nada concluído
-- **VoxelNum**: ainda nada concluído
+- **BoundingBox**: todos os valores são diferentes
+- **VoxelNum**: praticamente todos os valores são diferentes
 - **VolumeNum**: [1,2,3,4] -> Outliers: [1,3,4]
-- **CenterOfMassIndex**: ainda nada concluído
-- **CenterOfMass**: ainda nada concluído
+- **CenterOfMassIndex**: todos os valores são diferentes
+- **CenterOfMass**: todos os valores são diferentes
 
 #### Configurations
 - **Settings**: valor único para todas as entradas 
 - **EnabledImageTypes**: valor único para todas as entradas
 
-unica conclusao aqui é que *CenterOfMassIndex* e *CenterOfMass* têm exatamente os mesmos valores, dar `drop` posteriormente.
+Analisando estes três últimos conjuntos de dados `Diagnostics`, percebemos que certas features com entradas todas iguais podem ser removidas por se tratarem de informação claramente irrelevante, pois apresentam uma correlation completamente **nula** para o nosso `Target`.
+
 
 ## Data Preprocessing
 
-- `remove_nunique_values()` com este método removemos todas as colunas que têm todas as entradas iguais. 2181 -> 2034 features
 
 
 ## Undefined
