@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[53]:
+# In[1]:
 
 
 import pandas as pd
@@ -10,8 +10,11 @@ import seaborn as sns
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler, LabelEncoder
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
+from sklearn.decomposition import PCA
+from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, confusion_matrix
 
 
 # In[2]:
@@ -159,7 +162,7 @@ def target_decoder(le_make, preds):
     return le_make.inverse_transform(preds)
 
 
-# In[13]:
+# In[93]:
 
 
 le_make_control = target_encoder(control_df)
@@ -515,13 +518,13 @@ show_heatmap(train_df[top_features])
 # In[47]:
 
 
-low_corr_columns_absolute = corr_matrix[(corr_matrix.abs() < 0.05)].index.tolist() #retorna as colunas maiores que 0.05 ou menores que -0.05
-low_corr_columns = corr_matrix[(corr_matrix < 0.05)].index.tolist() #retorna apenas as colunas maiores que 0.05
+low_corr_columns_absolute = corr_matrix[(corr_matrix.abs() < 0.05)].index.tolist() 
+low_corr_columns = corr_matrix[(corr_matrix < 0.05)].index.tolist()
 print(len(low_corr_columns_absolute))
 print(len(low_corr_columns))
 
 
-# In[61]:
+# In[48]:
 
 
 low_corr_train_df = train_df.drop(columns=low_corr_columns,axis=1,errors="ignore")
@@ -533,21 +536,22 @@ low_corr_abs_control_df = control_df.drop(columns=low_corr_columns_absolute,axis
 low_corr_abs_test_df = test_df.drop(columns=low_corr_columns_absolute,axis=1,errors="ignore")
 
 
-# In[49]:
+# In[88]:
 
 
-main_exploration(train_df_low)
-main_exploration(control_df_low)
-main_exploration(test_df_low)
+main_exploration(low_corr_train_df)
+main_exploration(low_corr_control_df)
+main_exploration(low_corr_test_df)
 print("---low---")
-main_exploration(train_df_low_abs)
-main_exploration(control_df_low_abs)
-main_exploration(test_df_low_abs)
+main_exploration(low_corr_abs_train_df)
+main_exploration(low_corr_abs_control_df)
+main_exploration(low_corr_abs_test_df)
 
 
 # ## Data Scaler
+# Padroniza os dados
 
-# In[56]:
+# In[50]:
 
 
 from sklearn.preprocessing import StandardScaler
@@ -559,62 +563,181 @@ def data_scaler(df):
     return df_scaled
 
 
-# ### PCA method
-
-# In[57]:
+# In[51]:
 
 
-from sklearn.decomposition import PCA
-
-def pca_applier(train_df, test_df):
-    # 1. Ajustar o PCA no dataset de treino para reter 95% da variância
-    pca = PCA(n_components=0.95)
-    train_pca_features = pca.fit_transform(train_df)
-
-    # 2. Determinar o número de componentes que explicam pelo menos 95% da variância
-    explained_variance = pca.explained_variance_ratio_
-    cumulative_variance = np.cumsum(explained_variance)
-    components_number = np.argmax(cumulative_variance >= 0.95) + 1
-
-    # 3. Criar um novo PCA com o número exato de componentes e ajustar no treino
-    final_pca = PCA(n_components=components_number)
-    train_reduced = final_pca.fit_transform(train_df)
-
-    # 4. Transformar o dataset de teste com o PCA ajustado no treino
-    test_reduced = final_pca.transform(test_df)
-
-    # 5. Converter ambos para DataFrames para fácil visualização e tratamento
-    train_reduced_df = pd.DataFrame(train_reduced, columns=[f"PC{i+1}" for i in range(components_number)])
-    test_reduced_df = pd.DataFrame(test_reduced, columns=[f"PC{i+1}" for i in range(components_number)])
-
-    return train_reduced_df, test_reduced_df
-
-
-# In[62]:
-
-
-pca_train_df = data_scaler(train_df)
-pca_test_df = data_scaler(test_df)
-pca_train_df, pca_test_df = pca_applier(pca_train_df,pca_test_df)
+scaled_train_df = data_scaler(train_df)
+scaled_control_df = data_scaler(control_df)
+scaled_test_df = data_scaler(test_df)
 
 
 # ## Data Normalizer
+# Normalizar dados
 
-# In[ ]:
+# In[52]:
 
 
 from sklearn.preprocessing import MinMaxScaler
 
 def data_normalizer(df):
+    scaler_df = df.drop(columns=["Transition","Transition_code"],errors="ignore")
+    
     scaler = MinMaxScaler()
-    df_normalized = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
+    df_normalized = pd.DataFrame(scaler.fit_transform(scaler_df), columns=scaler_df.columns)
     
     return df_normalized
 
 
+# In[53]:
+
+
+normalized_train_df = data_normalizer(train_df)
+normalized_control_df = data_normalizer(control_df)
+normalized_test_df = data_normalizer(test_df)
+
+
+# ## Correlation, PCA, XGBoost combine Processing
+# Neste teste combinamos os métodos realizados em cima de modo a tentar combinar as vantagens de cada um para obter um dataset mais reduzido apenas com as features que mais contribuem para o target 
+
+# In[74]:
+
+
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+from xgboost import XGBClassifier
+
+
+# In[97]:
+
+
+corr_xgb_df = train_df.drop("Transition",axis=1)
+target = "Transition_code"
+X_corr_pca = corr_pca_df.drop(columns=[target])
+y_corr_pca = corr_pca_df[target]
+
+
+# ### Correlation Analisys
+
+# In[98]:
+
+
+def apply_correlation(df,threshold=0.05):
+    correlation = df.corr()[target].abs().sort_values(ascending=False)
+    important_features = correlation[correlation > threshold].index.tolist()
+    
+    if target in important_features:
+        important_features.remove(target)
+
+    return important_features
+
+
+# ### XGBoost
+
+# In[99]:
+
+
+def apply_xgboost(important_features):
+    X_filtered = X_corr_pca[important_features]
+    X_train, X_test, y_train, y_test = train_test_split(X_filtered, y_corr_pca, test_size=0.3, random_state=42)
+    
+    model = XGBClassifier()
+    model.fit(X_train, y_train)
+    
+    importances = model.feature_importances_
+    importance_df = pd.DataFrame({'feature': important_features, 'importance': importances})
+    important_features_xgb = importance_df[importance_df['importance'] > 0.0016]['feature'].tolist()
+
+    return important_features_xgb
+
+
+# ### Apply Corr and XGB
+
+# In[100]:
+
+
+corr_important_features = apply_correlation(corr_xgb_df)
+corr_xgb_important_features = apply_xgboost(corr_important_features)
+
+
+# In[101]:
+
+
+corr_xgb_train_df = train_df[corr_xgb_important_features]
+corr_xgb_control_df = control_df[corr_xgb_important_features]
+corr_xgb_test_df = test_df[corr_xgb_important_features]
+
+
+# In[102]:
+
+
+print("Important: ",len(corr_important_features))
+print("Important XGBoost:",len(corr_xgb_important_features))
+
+main_exploration(corr_xgb_train_df)
+main_exploration(corr_xgb_control_df)
+main_exploration(corr_xgb_test_df)
+
+
+# ### PCA
+
+# In[104]:
+
+
+def apply_pca(train_df,control_df,test_df,n_components=40):
+    pca = PCA(n_components=n_components)
+    
+    X_train_pca = pca.fit_transform(train_df)
+    X_control_pca = pca.transform(control_df)
+    X_test_pca = pca.transform(test_df)
+
+    X_train_pca_df = pd.DataFrame(X_train_pca, columns=[f'PC{i+1}' for i in range(X_train_pca.shape[1])])
+    X_control_pca_df = pd.DataFrame(X_control_pca, columns=[f'PC{i+1}' for i in range(X_control_pca.shape[1])])
+    X_test_pca_df = pd.DataFrame(X_test_pca, columns=[f'PC{i+1}' for i in range(X_test_pca.shape[1])])
+
+    return X_train_pca_df, X_control_pca_df, X_test_pca_df
+
+
+# ### Apply PCA to Corr and XGB
+
+# In[105]:
+
+
+corr_xgb_pca_train_df,  corr_xgb_pca_control_df, corr_xgb_pca_test_df = apply_pca(corr_xgb_train_df,corr_xgb_control_df,corr_xgb_test_df)
+
+
+# In[106]:
+
+
+main_exploration(corr_xgb_pca_train_df)
+main_exploration(corr_xgb_pca_control_df)
+main_exploration(corr_xgb_pca_test_df)
+
+
+# ### Add Transition_code to DataSets
+
+# In[108]:
+
+
+corr_xgb_train_df.loc[:,"Transition_code"] = train_df["Transition_code"].values
+corr_xgb_control_df.loc[:,"Transition_code"] = control_df["Transition_code"].values
+corr_xgb_pca_train_df.loc[:,"Transition_code"] = train_df["Transition_code"].values
+corr_xgb_pca_control_df.loc[:,"Transition_code"] = control_df["Transition_code"].values
+
+
+# In[109]:
+
+
+main_exploration(corr_xgb_pca_train_df)
+main_exploration(corr_xgb_pca_control_df)
+main_exploration(corr_xgb_pca_test_df)
+
+
+# ## Importante
+# 
+# Para já vamos tentar aplicar este métodos de processamento de dados sem usar o `StandardScaler`. Mas eventualmente nos testes vamos tentar as duas abordagens. !!Não Esquecer!!
+
 # # Testing Phase
 
-# In[60]:
+# In[ ]:
 
 
 from sklearn.model_selection import train_test_split
@@ -623,8 +746,8 @@ from sklearn.metrics import classification_report
 from sklearn.decomposition import PCA
 import pandas as pd
 
-df = new_train_df
-df_test = new_test_df
+df = data_scaler(train_df[important_features_xgb])
+df_test = data_scaler(test_df[important_features_xgb])
 
 # Codificar a variável 'Transition' para análise de correlação (convertendo categorias em números)
 df['Transition_code'] = train_df['Transition'].astype('category').cat.codes
@@ -660,6 +783,74 @@ dummy_df.to_csv("../Dataset/dummy_submission.csv", index=False)
 
 print(y_pred_original)
 
+print("Coluna 'Result' atualizada com sucesso!")
+
+
+# In[ ]:
+
+
+from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, confusion_matrix
+import pandas as pd
+
+# Suposição de que train_df e test_df já estão definidos
+df = data_scaler(train_df[important_features_xgb])
+df_test = data_scaler(test_df[important_features_xgb])
+
+# Codificar a variável 'Transition' para análise de correlação
+df['Transition_code'] = train_df['Transition'].astype('category').cat.codes
+
+
+
+# Separar os dados em features e target para treino e teste
+X_train = df.drop(columns=["Transition_code","Transition"],axis=1,errors="ignore")
+X_test = df_test
+y_train = df['Transition_code']
+
+
+
+# Definir o espaço de hiperparâmetros para a busca
+param_grid = {
+    'n_estimators': [100, 200],
+    'max_depth': [None, 10, 20],
+    'min_samples_split': [2, 5, 10],
+}
+
+# Criar o objeto GridSearchCV
+grid_search = GridSearchCV(estimator=RandomForestClassifier(random_state=42), 
+                           param_grid=param_grid, 
+                           cv=5, 
+                           scoring='accuracy',
+                           verbose=2)
+
+# Ajustar o modelo com Grid Search
+grid_search.fit(X_train, y_train)
+
+# Melhor modelo
+best_rf_model = grid_search.best_estimator_
+
+# Validar o modelo com validação cruzada
+cv_scores = cross_val_score(best_rf_model, X_train, y_train, cv=5)
+print("Acurácia média com validação cruzada: ", cv_scores.mean())
+
+# Fazer previsões no conjunto de teste
+y_pred = best_rf_model.predict(X_test)
+
+# Criar o mapeamento inverso para transformar os números em categorias originais
+inverse_transition_map = dict(enumerate(train_df['Transition'].astype('category').cat.categories))
+
+# Reverter as previsões para as categorias originais
+y_pred_original = pd.Series(y_pred).map(inverse_transition_map)
+
+# Atualizar a coluna 'Result' no dataset 'dummy_df' com as previsões
+dummy_df["Result"] = y_pred_original.values
+
+# Guardar o dataset atualizado
+dummy_df.to_csv("../Dataset/dummy_submission.csv", index=False)
+
+print(y_pred_original)
 print("Coluna 'Result' atualizada com sucesso!")
 
 
