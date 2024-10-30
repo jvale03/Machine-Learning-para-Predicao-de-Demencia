@@ -1,6 +1,6 @@
-scaler, corr_threshold, abs, xgb_threshold, pca, n_features, data_set, ensemble_class, ensemble_score, predict_score, predict_control, xgb_params
-True, 0.01, True, 0.000001, False, 592, "corr_xgb_train_df","stacking", 0.40, None, None, ""
-True, 0.01, True, 0.000001, False, 592, "corr_xgb_train_df","voting", 0.38, 0.34474, None, ""
-True, 0.01, True, 0.0001, False, 493, "corr_xgb_train_df","stacking", 0.41, 0.37189, 0.18750, ""
+scaler, corr_threshold, abs, xgb_threshold, pca, n_features, dataset, ensemble_class, ensemble_score, predict_score, predict_control, xgb_params
+True, 0.01, True, 0.000001, False, 592, "corr_xgb_train_df","stacking", 0.40, None, None, None
+True, 0.01, True, 0.000001, False, 592, "corr_xgb_train_df","voting", 0.38, 0.34474, None, None
+True, 0.01, True, 0.0001, False, 493, "corr_xgb_train_df","stacking", 0.41, 0.37189, 0.18750, None
 True, 0.03, True, 0.002 , False, 122, "corr_xgb_train_df","stacking", 0.45, None, None, "{'subsample': 0.6, 'reg_lambda': 2, 'reg_alpha': 0, 'n_estimators': 400, 'max_depth': 6, 'learning_rate': 0.01, 'gamma': 0.2, 'colsample_bytree': 1.0}"
 True, 0.01, True, 0.0, False, 1782, "corr_xgb_train_df","stacking", 0.34, None, None, "{'subsample': 0.6, 'n_estimators': 200, 'max_depth': 10, 'learning_rate': 0.2, 'colsample_bytree': 1.0}"
