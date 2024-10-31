@@ -82,3 +82,4 @@ Analisando estes três últimos conjuntos de dados `Diagnostics`, percebemos que
 1. **Alzheimer**: [Data](http://adni.loni.usc.edu/)
 2. **PyRadiomics**: [Documentation](https://pyradiomics.readthedocs.io/)
 3. **IQR ouliers method**: [IQR](https://builtin.com/articles/1-5-iqr-rule)
+4. **SHAP documentation**: [SHAP](https://shap.readthedocs.io/en/latest/)
