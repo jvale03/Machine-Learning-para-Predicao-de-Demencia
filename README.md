@@ -80,6 +80,6 @@ Analisando estes três últimos conjuntos de dados `Diagnostics`, percebemos que
 
 ## Useful Links / Refs
 1. **Alzheimer**: [Data](http://adni.loni.usc.edu/)
-2. **PyRadiomics**: [Documentation](https://pyradiomics.readthedocs.io/)
+2. **PyRadiomics**: [Documentation](https://pyradiomics.readthedocs.io/en/latest/features.html)
 3. **IQR ouliers method**: [IQR](https://builtin.com/articles/1-5-iqr-rule)
 4. **SHAP documentation**: [SHAP](https://shap.readthedocs.io/en/latest/)
