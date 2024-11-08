@@ -272,11 +272,36 @@ rad_corr = top_correlations(train_df,starts_with="lbp",number=20)
 show_heatmap(train_df[rad_corr])
 
 
+# # Save & Load Data
+
+# In[28]:
+
+
+import pickle
+import os
+
+uni_path = "../DataSaver/"
+
+def save_stuff(data,path):
+    file_path = os.path.join(uni_path, path)
+    
+    with open(file_path,"wb") as file:
+        pickle.dump(data,file)
+
+def load_stuff(path):
+    file_path = os.path.join(uni_path,path)
+
+    with open(file_path,"rb") as file:
+        data = pickle.load(file)
+
+    return data
+
+
 # # Data Processing
 
 # ## Drop Unnecessary Columns
 
-# In[28]:
+# In[29]:
 
 
 control_df = control_df.drop(columns=unnecessary_columns,axis=1,errors="ignore")
@@ -286,7 +311,7 @@ test_df = test_df.drop(columns=unnecessary_columns,axis=1,errors="ignore")
 
 # ## Nunique Columns
 
-# In[29]:
+# In[30]:
 
 
 nunique_columns = train_df.columns[train_df.nunique() == 1].tolist()
@@ -297,7 +322,7 @@ control_df = control_df.drop(columns=nunique_columns, errors="ignore")
 
 # ## Non Numerical Columns
 
-# In[30]:
+# In[31]:
 
 
 # Separar a coluna de BoundingBox em várias colunas
@@ -307,7 +332,7 @@ train_df[['x_min', 'y_min', 'largura', 'altura', 'profundidade', 'extra']] = tra
 train_df[['x_center', 'y_center', 'z_center']] = train_df['diagnostics_Mask-original_CenterOfMass'].str.strip('()').str.split(',', expand=True).astype(float)
 
 
-# In[31]:
+# In[32]:
 
 
 # Separar a coluna de BoundingBox em várias colunas
@@ -317,7 +342,7 @@ test_df[['x_min', 'y_min', 'largura', 'altura', 'profundidade', 'extra']] = test
 test_df[['x_center', 'y_center', 'z_center']] = test_df['diagnostics_Mask-original_CenterOfMass'].str.strip('()').str.split(',', expand=True).astype(float)
 
 
-# In[32]:
+# In[33]:
 
 
 # Separar a coluna de BoundingBox em várias colunas
@@ -327,7 +352,7 @@ control_df[['x_min', 'y_min', 'largura', 'altura', 'profundidade', 'extra']] = c
 control_df[['x_center', 'y_center', 'z_center']] = control_df['diagnostics_Mask-original_CenterOfMass'].str.strip('()').str.split(',', expand=True).astype(float)
 
 
-# In[33]:
+# In[34]:
 
 
 train_df = train_df.drop(['diagnostics_Mask-original_BoundingBox', 'diagnostics_Mask-original_CenterOfMass'], axis=1, errors="ignore")
@@ -335,13 +360,13 @@ test_df = test_df.drop(['diagnostaics_Mask-original_BoundingBox', 'diagnostics_M
 control_df = control_df.drop(['diagnostics_Mask-original_BoundingBox', 'diagnostics_Mask-original_CenterOfMass'], axis=1, errors="ignore")
 
 
-# In[34]:
+# In[35]:
 
 
 main_exploration(train_df)
 
 
-# In[35]:
+# In[36]:
 
 
 train_df = train_df.select_dtypes(include=['number'])
@@ -351,7 +376,7 @@ test_df = test_df.select_dtypes(include=['number'])
 
 # ## Data Scaler
 
-# In[36]:
+# In[37]:
 
 
 from sklearn.preprocessing import StandardScaler
@@ -363,7 +388,7 @@ def data_scaler(df):
     return df_scaled
 
 
-# In[37]:
+# In[38]:
 
 
 scaled_train_df = data_scaler(train_df)
@@ -376,7 +401,7 @@ scaled_control_df["Transition_code"] = train_df["Transition_code"].values
 
 # ## Correlation Analisys
 
-# In[38]:
+# In[39]:
 
 
 corr_df = scaled_train_df.copy()
@@ -384,7 +409,7 @@ corr_df.loc[:,"Transition_code"] = train_df["Transition_code"].values
 target = "Transition_code"
 
 
-# In[39]:
+# In[40]:
 
 
 corr_threshold = 0
@@ -399,13 +424,13 @@ def apply_correlation(df,threshold):
     return important_features
 
 
-# In[40]:
+# In[41]:
 
 
 important_features = apply_correlation(scaled_train_df, corr_threshold)
 
 
-# In[41]:
+# In[42]:
 
 
 corr_train_df = scaled_train_df[important_features]
@@ -413,14 +438,14 @@ corr_control_df = scaled_control_df[important_features]
 corr_test_df = scaled_test_df[important_features]
 
 
-# In[42]:
+# In[43]:
 
 
 corr_train_df["Transition_code"] = train_df["Transition_code"].values
 corr_control_df["Transition_code"] = train_df["Transition_code"].values
 
 
-# In[179]:
+# In[44]:
 
 
 main_exploration(corr_train_df)
@@ -430,17 +455,17 @@ main_exploration(corr_test_df)
 
 # # Testing Phase
 
-# In[44]:
+# In[45]:
 
 
 from sklearn.ensemble import RandomForestClassifier, VotingClassifier, StackingClassifier, GradientBoostingClassifier
-from sklearn.metrics import accuracy_score, f1_score, classification_report
+from sklearn.metrics import accuracy_score, f1_score, classification_report, make_scorer
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, cross_val_score
 from xgboost import XGBClassifier
 from sklearn.linear_model import LinearRegression, LogisticRegression
 
 
-# In[45]:
+# In[46]:
 
 
 def define_X_y(train_df, test_df = pd.DataFrame()):
@@ -460,11 +485,11 @@ def define_X_y(train_df, test_df = pd.DataFrame()):
         return x_train, x_test, y_train, None
 
 
-# In[180]:
+# In[151]:
 
 
 results = {}
-x_train, x_test, y_train, y_test = define_X_y(corr_train_df)
+x_train, x_test, y_train, y_test = define_X_y(corr_train_df,corr_test_df)
 main_exploration(x_train)
 main_exploration(x_test)
 
@@ -473,7 +498,7 @@ main_exploration(x_test)
 
 # ### RandomForest
 
-# In[47]:
+# In[ ]:
 
 
 def random_forest_model(x_train,y_train):
@@ -482,10 +507,28 @@ def random_forest_model(x_train,y_train):
     
     return model
 
+def randomforest_grid_model(x_train,y_train):
+    model = RandomForestClassifier(random_state=27)
+    
+    param_grid_rf = {
+    'n_estimators': [100, 200, 500],
+    'max_depth': [3, 5, 10, None],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf': [1, 2, 5],
+    'max_features': ['sqrt', 'log2']
+    }
+    scorer = make_scorer(f1_score, average='macro')
+
+    grid_search_rf = GridSearchCV(model, param_grid_rf, cv=5, scoring=scorer, n_jobs=-1, verbose=1)
+    grid_search_rf.fit(x_train,y_train)
+    print(grid_search_rf.best_params_)
+
+    return grid_search_rf.best_estimator_
+
 
 # ### XGBoost
 
-# In[48]:
+# In[ ]:
 
 
 def xgboost_model(x_train,y_train):
@@ -494,10 +537,30 @@ def xgboost_model(x_train,y_train):
 
     return model
 
+def xgboost_grid_model(x_train,y_train):
+    model = XGBClassifier(random_state=27)
+    
+    param_grid_xgb = {
+    'n_estimators': [100, 200],
+    'max_depth': [3, 5, 10],
+    'learning_rate': [0.01, 0.05, 0.1],
+    'subsample': [0.8, 1.0],
+    'colsample_bytree': [0.8, 1.0]
+    }
+
+    scorer = make_scorer(f1_score, average='macro')
+
+    grid_search_xgb = GridSearchCV(model, param_grid_xgb, cv=3, scoring=scorer, n_jobs=-1, verbose=1)
+    grid_search_xgb.fit(x_train,y_train)
+    print(grid_search_xgb.best_params_)
+    
+
+    return grid_search_xgb.best_estimator_
+
 
 # ### GradientBoost
 
-# In[49]:
+# In[ ]:
 
 
 def gradient_model(x_train, y_train):
@@ -506,10 +569,29 @@ def gradient_model(x_train, y_train):
     
     return model
 
+def gradient_grid_model(x_train,y_train):
+    model = GradientBoostingClassifier(random_state=27)
+    
+    param_grid_gb = {
+    'n_estimators': [100, 200],
+    'learning_rate': [0.01, 0.05, 0.1],
+    'max_depth': [3, 5, 10],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf': [1, 2, 5]
+    }
+
+    scorer = make_scorer(f1_score, average='macro')
+
+    grid_search_gb = GridSearchCV(model, param_grid_gb, cv=3, scoring=scorer, n_jobs=-1, verbose=1)
+    grid_search_gb.fit(x_train,y_train)
+    print(grid_search_gb.best_params_)
+
+    return grid_search_gb.best_estimator_
+
 
 # ### Logistic Regression L2
 
-# In[50]:
+# In[51]:
 
 
 def log_reg_model(x_train,y_train):
@@ -519,12 +601,36 @@ def log_reg_model(x_train,y_train):
     return model
 
 
+# ## Voting Ensemble
+
+# In[52]:
+
+
+def voting_ensemble(x_train,y_train,estimators=[("rf",None),("xgb",None),("gb",None)],weights=[0.8,1,1.05]):
+    model = VotingClassifier(estimators=estimators, voting="hard", weights=weights)
+    model.fit(x_train,y_train)
+    
+    return model
+
+
+# ## Stacking Ensemble
+
+# In[53]:
+
+
+def stacking_ensemble(x_train,y_train,estimators=[("rf",None),("xgb",None),("gb",None)]):
+    model = StackingClassifier(estimators=estimators, final_estimator=LogisticRegression(), cv=3, n_jobs=-1)
+    model.fit(x_train,y_train)
+    
+    return model
+
+
 # ## Models Applier
 
-# In[218]:
+# In[54]:
 
 
-def apply_models(x_train,y_train,x_test,y_test, title="Models Macro F1 Comparison"):
+def apply_basic_models(x_train,y_train,x_test,y_test, title="Models Macro F1 Comparison"):
     rf_model = random_forest_model(x_train,y_train)
     results["RandomForest"] = [rf_model,None]
 
@@ -537,14 +643,30 @@ def apply_models(x_train,y_train,x_test,y_test, title="Models Macro F1 Compariso
     log_model = log_reg_model(x_train,y_train)
     results["LogRegression"] = [log_model,None]
 
-    models_comparison(results,title,x_test=x_test,y_test=y_test)
+    if len(x_train) != 305:
+        models_comparison(results,title,x_test=x_test,y_test=y_test)
 
     return rf_model,xgb_model,gradient_models, log_model
+
+def apply_grid_models(x_train,y_train,x_test,y_test, title="Models Macro F1 Comparison"):
+    rf_model = randomforest_grid_model(x_train,y_train)
+    results["RandomForest"] = [rf_model,None]
+
+    xgb_model = xgboost_grid_model(x_train,y_train)
+    results["XGBoost"] = [xgb_model,None]
+
+    gradient_models = gradient_grid_model(x_train,y_train)
+    results["Gradient"] = [gradient_models,None]
+
+    if len(x_train) != 305:
+        models_comparison(results,title,x_test=x_test,y_test=y_test)
+
+    return rf_model,xgb_model,gradient_models
 
 
 # ## Models Comparison
 
-# In[223]:
+# In[55]:
 
 
 def models_comparison(results,title,x_test=x_test,y_test=y_test):
@@ -570,15 +692,15 @@ def models_comparison(results,title,x_test=x_test,y_test=y_test):
 
 # ## Models Tester
 
-# In[53]:
+# In[152]:
 
 
-rf_model,xgb_model,gradient_models, log_model = apply_models(x_train,y_train,x_test,y_test)
+rf_model,xgb_model,gradient_models, log_model = apply_basic_models(x_train,y_train,x_test,y_test)
 
 
 # ## Feature Importance Analysis
 
-# In[54]:
+# In[57]:
 
 
 from sklearn.inspection import permutation_importance
@@ -586,7 +708,7 @@ from sklearn.inspection import permutation_importance
 
 # ### Permutation Importance
 
-# In[57]:
+# In[58]:
 
 
 #print("rf...")
@@ -601,7 +723,7 @@ pi_xgb_result = load_stuff("Permutations/pi_xgb_result.pkl")
 pi_gradient_result = load_stuff("Permutations/pi_gradient_result.pkl")
 
 
-# In[181]:
+# In[91]:
 
 
 x_train, x_test, y_train, y_test = define_X_y(corr_train_df)
@@ -609,7 +731,7 @@ main_exploration(x_train)
 main_exploration(x_test)
 
 
-# In[209]:
+# In[60]:
 
 
 def show_negative_perm_importance(result, x_test,equal=False):
@@ -646,30 +768,30 @@ def show_positive_perm_importance(result, x_test):
     return positive_importances.index.tolist()
 
 
-# ## Remove Negative Importances
+# ### Remove Negative Importances
 
-# In[183]:
+# In[92]:
 
 
 negative_columns_rf = show_negative_perm_importance(pi_rf_result, x_test)
 print(len(negative_columns_rf))
 
 
-# In[184]:
+# In[93]:
 
 
 negative_columns_xgb = show_negative_perm_importance(pi_xgb_result, x_test)
 print(len(negative_columns_xgb))
 
 
-# In[185]:
+# In[94]:
 
 
 negative_columns_gradient = show_negative_perm_importance(pi_gradient_result, x_test)
 print(len(negative_columns_gradient))
 
 
-# In[186]:
+# In[101]:
 
 
 negative_columns = negative_columns_gradient + negative_columns_xgb + negative_columns_rf
@@ -677,29 +799,9 @@ negative_columns = list(dict.fromkeys(negative_columns))
 print(len(negative_columns))
 
 
-# ## Models Tester
+# ### Remove Null Importances
 
-# In[194]:
-
-
-without_neg_imp_train_df = corr_train_df.drop(columns=negative_columns)
-without_neg_imp_control_df = corr_control_df.drop(columns=negative_columns)
-without_neg_imp_test_df = corr_test_df.drop(columns=negative_columns)
-results = {}
-x_train, x_test, y_train, y_test = define_X_y(without_neg_imp_train_df)
-main_exploration(x_train)
-main_exploration(x_test)
-
-
-# In[83]:
-
-
-rf_model,xgb_model,gradient_models, log_model = apply_models(x_train,y_train,x_test,y_test)
-
-
-# ## Remove Null Importances
-
-# In[204]:
+# In[111]:
 
 
 x_train, x_test, y_train, y_test = define_X_y(corr_train_df)
@@ -707,14 +809,14 @@ main_exploration(x_train)
 main_exploration(x_test)
 
 
-# In[189]:
+# In[112]:
 
 
 null_columns_rf = show_negative_perm_importance(pi_rf_result, x_test,equal=True)
 print(len(null_columns_rf))
 
 
-# In[211]:
+# In[113]:
 
 
 null_columns_xgb = show_negative_perm_importance(pi_xgb_result, x_test,equal=True)
@@ -723,68 +825,109 @@ print(len(null_columns_xgb))
 print(len(positive_columns_xgb))
 
 
-# In[191]:
+# In[114]:
 
 
 null_columns_gradient = show_negative_perm_importance(pi_gradient_result, x_test,equal=True)
 print(len(null_columns_gradient))
 
 
-# In[192]:
+# In[115]:
 
 
 null_columns = set(null_columns_rf) & set(null_columns_xgb) & set (null_columns_gradient) 
 print(len(null_columns))
 
 
-# ## Models Tester
-
-# In[276]:
-
-
-without_null_imp_train_df = corr_train_df.drop(columns=null_columns_xgb)
-without_null_imp_control_df = corr_control_df.drop(columns=null_columns_xgb)
-without_null_imp_test_df = corr_test_df.drop(columns=null_columns_xgb)
-results = {}
-x_train, x_test, y_train, y_test = define_X_y(without_null_imp_train_df)
-main_exploration(x_train)
-main_exploration(x_test)
-
-
-# In[278]:
-
-
-rf_model,xgb_model,gradient_models, log_model = apply_models(x_train,y_train,x_test,y_test)
-
-
-# In[150]:
-
-
-important_features = apply_correlation(without_null_imp_train_df,0.1)
-show_heatmap(without_null_imp_train_df[important_features])
-
-
 # ## SHAP Analysis
+
+# In[248]:
+
+
+def get_shap_mean_values(shap_values,threshold = 0):
+    feature_shap = np.abs(shap_values.values).mean(axis=(0, 2))
+
+    feature_shap_importance_df = pd.DataFrame({
+        "feature": X_shap.columns,
+        "importance": feature_importance
+    }).sort_values(by="importance", ascending=False)
+
+    zero_shap_importance_features_dic = feature_shap_importance_df[feature_shap_importance_df["importance"] <= threshold]
+
+    return zero_shap_importance_features_dic
+    
+X_shap = corr_train_df.drop("Transition_code",axis=1)
+
 
 # ### Global
 
-# In[270]:
+# In[236]:
 
-
-X_shap = without_null_imp_train_df.drop("Transition_code",axis=1)
 
 explainer = shap.Explainer(xgb_model,X_shap)
-shap_values = explainer(X_shap)
+shap_values_xgb = explainer(X_shap)
 
 
-# In[271]:
+# In[211]:
+
+
+explainer = shap.Explainer(rf_model,X_shap)
+shap_values_rf = explainer(X_shap,check_additivity=False)
+
+
+# In[ ]:
+
+
+#background_data = shap.kmeans(X_shap, 30)
+
+#explainer = shap.KernelExplainer(gradient_models.predict, background_data)
+#shap_values_gradient = explainer(X_shap)
+
+
+# In[256]:
+
+
+shap_importances_rf = get_shap_mean_values(shap_values_rf,0.0)
+print(len(shap_importances_rf))
+print(shap_importances_rf)
+
+
+# In[251]:
+
+
+shap_importances_xgb = get_shap_mean_values(shap_values_xgb,0.0)
+    print(len(shap_importances_xgb))
+
+
+# In[ ]:
+
+
+show_histogram(shap_values_xgb)
+
+
+# In[ ]:
+
+
+print(len(set(shap_columns_rf) & set(shap_columns_rf) & set(shap_columns_gradient)))
+
+
+# In[ ]:
+
+
+background_data = shap.kmeans(X_shap, 30)
+
+explainer = shap.KernelExplainer(gradient_models.predict, background_data)
+shap_values_gradient_30 = explainer.shap_values(X_shap)
+
+
+# In[ ]:
 
 
 n_features = shap_values.shape[1]
 n_features_per_plot = 10
 
 
-# In[272]:
+# In[ ]:
 
 
 for i in range(0, n_features, n_features_per_plot):
@@ -795,7 +938,7 @@ for i in range(0, n_features, n_features_per_plot):
     plt.show()
 
 
-# In[273]:
+# In[ ]:
 
 
 for i in range(0, n_features, n_features_per_plot):
@@ -808,50 +951,217 @@ for i in range(0, n_features, n_features_per_plot):
 
 # ### Local
 
-# In[290]:
+# In[ ]:
 
 
-preds = xgb_model.predict(x_test)
-errors = preds != y_test
-error_index = errors[errors].index.to_numpy()
+idx = [3, 48, 123, 254, 300, 31, 34, 12, 156, 7, 304, 299, 197, 100, 200, 50]
+print(len(idx))
+
+#média dos SHAP values para todas as instâncias
+global_shap_values = without_null_imp_train_df.drop("Transition_code",axis=1).mean()
+
+top_positive_features = global_shap_values.nlargest(0)
+top_negative_features = global_shap_values.nsmallest(20)
+
+# 10 features mais impactantes
+selected_features = pd.concat([top_positive_features, top_negative_features])
+
+fig, ax = plt.subplots(8, 2, figsize=(18, 72))
+
+for i in range(16):
+    shap_values = without_null_imp_train_df.iloc[idx[i]]
+    
+    instance_shap_values = shap_values[selected_features.index]
+    
+    row, col = divmod(i, 2)
+    ax[row, col].bar(instance_shap_values.index, instance_shap_values.values, 
+                     color=['#1f77b4' if v > 0 else '#ff7f0e' for v in instance_shap_values.values])
+    ax[row, col].set_title(f'SHAP Values of Instance {idx[i]}')
+    ax[row, col].tick_params(axis='x', rotation=90)
+    ax[row, col].set_xlabel("Features")
+    ax[row, col].set_ylabel("SHAP Value")
+
+plt.tight_layout()
+plt.show()
 
 
-# In[294]:
+# In[ ]:
 
 
+print(top_negative_features.keys())
 
+
+# ## SHAP PermImportance Combined
+
+# In[313]:
+
+
+X_shap = corr_train_df.drop("Transition_code", axis=1)  # Features
+y_shap = corr_train_df["Transition_code"]
+
+def combine_shap_perm(X,y,shap_values,perm_importance_values,model,threshold_mean=0,threshold_std=0,threshold_importance=0):
+    # Calculando a média e desvio padrão dos SHAP values
+    feature_shap_mean = np.abs(shap_values.values).mean(axis=(0, 2))
+    feature_shap_std = np.abs(shap_values.values).std(axis=(0, 2))
+    
+    # Criando DataFrame com média e desvio padrão
+    feature_shap_importance_df = pd.DataFrame({
+        "feature": X_shap.columns,
+        "mean_importance": feature_shap_mean,
+        "std_importance": feature_shap_std
+    })
+    
+    # Remover features com impacto abaixo dos thresholds de média e desvio padrão
+    low_importance_features = feature_shap_importance_df[
+        (feature_shap_importance_df["mean_importance"] <= threshold_mean) & 
+        (feature_shap_importance_df["std_importance"] <= threshold_std)
+    ]
+
+    mean_std_df, low_importance_features = feature_shap_importance_df, low_importance_features
+
+    # Criando DataFrame com a importância das features
+    perm_importance_df = pd.DataFrame({
+        "feature": X.columns,
+        "perm_importance": perm_importance_values.importances_mean
+    })
+    
+    # Ordenando as features pela importância de permutação
+    perm_importance_df = perm_importance_df.sort_values(by="perm_importance", ascending=False)
+
+    combined_importance_df = mean_std_df.merge(perm_importance_df, on="feature", how="left")
+
+    # Ordenando pelas médias de SHAP e importância por permutação
+    combined_importance_df = combined_importance_df.sort_values(by="mean_importance", ascending=False)
+    
+    # Definindo uma decisão com base nas métricas (exemplo: descartar features com média baixa de SHAP e baixa importância por permutação)
+    discard_features = combined_importance_df[
+        (combined_importance_df["mean_importance"] <= threshold_mean) & 
+        (combined_importance_df["std_importance"] <= threshold_std) & 
+        (combined_importance_df["perm_importance"] <= threshold_importance)
+    ]
+
+    return discard_features["feature"]
+
+
+# In[428]:
+
+
+discard_rf = combine_shap_perm(X_shap,y_shap,shap_values_rf,pi_rf_result,rf_model,threshold_mean=0.004,threshold_std=0.001,threshold_importance=0.004)
+discard_xgb = combine_shap_perm(X_shap,y_shap,shap_values_xgb,pi_xgb_result,xgb_model,threshold_mean=0.055,threshold_std=0.028,threshold_importance=0.055)
+combined = set(discard_rf) & set(discard_xgb)
+
+
+# In[429]:
+
+
+print(len(discard_rf))
+print(len(discard_xgb))
+print(len(combined))
 
 
 # ## Models Tester
 
-# In[263]:
+# In[420]:
 
 
 try_features = ["original_glszm_SizeZoneNonUniformityNormalized","wavelet-LLL_glrlm_RunLengthNonUniformityNormalized","wavelet-LHL_firstorder_InterquartileRange"]
 # melhor ate agora: ["original_glszm_SizeZoneNonUniformityNormalized","wavelet-LLL_glrlm_RunLengthNonUniformityNormalized","wavelet-LHL_firstorder_InterquartileRange"]
 # ["wavelet-LLL_glrlm_RunLengthNonUniformityNormalized","wavelet-LHL_firstorder_InterquartileRange"]
 # "wavelet-LLL_glrlm_RunLengthNonUniformityNormalized"
+# "wavelet-LHL_gldm_DependenceNonUniformity",
 
 
-# In[264]:
+# In[421]:
 
 
-shap_train_df = without_null_imp_train_df.drop(columns=try_features,errors="ignore")
-shap_control_df = without_null_imp_control_df.drop(columns=[])
-shap_test_df = without_null_imp_test_df.drop(columns=[])
+try_features = discard_features_rf["feature"]
+print(len(try_features))
+
+
+# In[430]:
+
+
+shap_train_df = corr_train_df.drop(columns=discard_xgb)
+shap_control_df = corr_train_df.drop(columns=[])
+shap_test_df = corr_train_df.drop(columns=[])
 results = {}
 x_train, x_test, y_train, y_test = define_X_y(shap_train_df)
 main_exploration(x_train)
 main_exploration(x_test)
 
 
-# In[265]:
+# In[431]:
 
 
-apply_models(x_train,y_train,x_test,y_test)
+rf_model,xgb_model,gradient_models, log_model = apply_basic_models(x_train,y_train,x_test,y_test)
 
 
-# # Preds to CSV
+# In[432]:
+
+
+voting_model = voting_ensemble(x_train,y_train,estimators=[("rf",rf_model),("xgb",xgb_model),("gb",gradient_models)],weights=[1,1,1])
+stacking_model = stacking_ensemble(x_train,y_train,estimators=[("rf",rf_model),("xgb",xgb_model),("gb",gradient_models)])
+
+
+# In[433]:
+
+
+results["voting_model"] = [voting_model,None]
+results["stacking_model"] = [stacking_model,None]
+
+models_comparison(results,"Ensemble",x_test=x_test,y_test=y_test)
+
+
+# In[ ]:
+
+
+results = {}
+rf_grid_model,xgb_grid_model,gradient_grid_models = apply_grid_models(x_train,y_train,x_test,y_test)
+
+
+# In[ ]:
+
+
+voting_model = voting_ensemble(x_train,y_train,estimators=[("rf",rf_grid_model),("xgb",xgb_grid_model),("gb",gradient_grid_models)],weights=[1,1,1])
+stacking_model = stacking_ensemble(x_train,y_train,estimators=[("rf",rf_grid_model),("xgb",xgb_grid_model),("gb",gradient_grid_models)])
+
+results["voting_model"] = [voting_model,None]
+results["stacking_model"] = [stacking_model,None]
+
+models_comparison(results,"Grid Ensemble",x_test=x_test,y_test=y_test)
+
+
+# # Get Preds
+
+# In[ ]:
+
+
+shap_train_df = without_null_imp_train_df.drop(columns=discard_xgb)
+shap_control_df = without_null_imp_control_df.drop(columns=discard_xgb)
+shap_test_df = without_null_imp_test_df.drop(columns=discard_xgb)
+results = {}
+x_train, x_test, y_train, y_test = define_X_y(shap_control_df,shap_test_df)
+main_exploration(x_train)
+main_exploration(x_test)
+
+
+# In[ ]:
+
+
+rf_grid_model,xgb_grid_model,gradient_grid_models = apply_grid_models(x_train,y_train,x_test,y_test)
+
+
+# In[ ]:
+
+
+voting_model = voting_ensemble(x_train,y_train,estimators=[("rf",rf_grid_model),("xgb",xgb_grid_model),("gb",gradient_grid_models)],weights=[1,1,1])
+stacking_model = stacking_ensemble(x_train,y_train,estimators=[("rf",rf_grid_model),("xgb",xgb_grid_model),("gb",gradient_grid_models)])
+
+results["voting_model"] = [voting_model,None]
+results["stacking_model"] = [stacking_model,None]
+
+
+# ## Preds to CSV
 
 # In[ ]:
 
@@ -872,40 +1182,15 @@ def preds_to_csv(preds, df=dummy_df):
 # In[ ]:
 
 
-preds_to_csv(gradient_model.predict(x_test))
+preds_to_csv(stacking_model.predict(x_test))
 
 
-# # Save & Load Data
-
-# In[56]:
+# In[209]:
 
 
-import pickle
-import os
-
-uni_path = "../DataSaver/"
-
-def save_stuff(data,path):
-    file_path = os.path.join(uni_path, path)
-    
-    with open(file_path,"wb") as file:
-        pickle.dump(data,file)
-
-def load_stuff(path):
-    file_path = os.path.join(uni_path,path)
-
-    with open(file_path,"rb") as file:
-        data = pickle.load(file)
-
-    return data
-
-
-# In[ ]:
-
-
-save_stuff(pi_rf_result,"Permutations/pi_rf_result.pkl")
-save_stuff(pi_xgb_result,"Permutations/pi_xgb_result.pkl")
-save_stuff(pi_gradient_result,"Permutations/pi_gradient_result.pkl")
+save_stuff(shap_values_xgb,"SHAP_Values/shap_values_xgb.pkl")
+save_stuff(shap_values_rf,"SHAP_Values/shap_values_rf.pkl")
+save_stuff(shap_values_gradient,"SHAP_Values/shap_values_gradient.pkl")
 
 
 # In[ ]:
