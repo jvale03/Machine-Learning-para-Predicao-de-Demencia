@@ -83,3 +83,5 @@ Analisando estes três últimos conjuntos de dados `Diagnostics`, percebemos que
 2. **PyRadiomics**: [Documentation](https://pyradiomics.readthedocs.io/en/latest/features.html)
 3. **IQR ouliers method**: [IQR](https://builtin.com/articles/1-5-iqr-rule)
 4. **SHAP documentation**: [SHAP](https://shap.readthedocs.io/en/latest/)
+5. **Hyperparameter Tuning**: [Tuning](https://www.geeksforgeeks.org/hyperparameter-tuning/)
+6. **Bayesian Optimization**: [Bayes](https://www.geeksforgeeks.org/catboost-bayesian-optimization/)
