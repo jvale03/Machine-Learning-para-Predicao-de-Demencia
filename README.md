@@ -85,3 +85,5 @@ Analisando estes três últimos conjuntos de dados `Diagnostics`, percebemos que
 4. **SHAP documentation**: [SHAP](https://shap.readthedocs.io/en/latest/)
 5. **Hyperparameter Tuning**: [Tuning](https://www.geeksforgeeks.org/hyperparameter-tuning/)
 6. **Bayesian Optimization**: [Bayes](https://www.geeksforgeeks.org/catboost-bayesian-optimization/)
+7. **Different Boosting Methods**: [Boost](https://www.geeksforgeeks.org/gradientboosting-vs-adaboost-vs-xgboost-vs-catboost-vs-lightgbm/)
+8. **CatBoost Hyperparams**: [CatBoost](https://www.geeksforgeeks.org/catboost-parameters-and-hyperparameters/)
