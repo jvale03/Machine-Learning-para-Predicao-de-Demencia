@@ -87,3 +87,4 @@ Analisando estes três últimos conjuntos de dados `Diagnostics`, percebemos que
 6. **Bayesian Optimization**: [Bayes](https://www.geeksforgeeks.org/catboost-bayesian-optimization/)
 7. **Different Boosting Methods**: [Boost](https://www.geeksforgeeks.org/gradientboosting-vs-adaboost-vs-xgboost-vs-catboost-vs-lightgbm/)
 8. **CatBoost Hyperparams**: [CatBoost](https://www.geeksforgeeks.org/catboost-parameters-and-hyperparameters/)
+9. **Feature Engineering**: [FeatureEng](https://www.geeksforgeeks.org/what-is-feature-engineering/)
