@@ -86,5 +86,6 @@ Analisando estes três últimos conjuntos de dados `Diagnostics`, percebemos que
 5. **Hyperparameter Tuning**: [Tuning](https://www.geeksforgeeks.org/hyperparameter-tuning/)
 6. **Bayesian Optimization**: [Bayes](https://www.geeksforgeeks.org/catboost-bayesian-optimization/)
 7. **Different Boosting Methods**: [Boost](https://www.geeksforgeeks.org/gradientboosting-vs-adaboost-vs-xgboost-vs-catboost-vs-lightgbm/)
-8. **CatBoost Hyperparams**: [CatBoost](https://www.geeksforgeeks.org/catboost-parameters-and-hyperparameters/)
 9. **Feature Engineering**: [FeatureEng](https://www.geeksforgeeks.org/what-is-feature-engineering/)
+10. **Skewness & Kurtosis** [SkewKurt](https://vivekrai1011.medium.com/skewness-and-kurtosis-in-machine-learning-c19f79e2d7a5)
+11. **Going Deep with SHAP Values** [Deep SHAP](https://medium.com/biased-algorithms/shap-values-for-multiclass-classification-2a1b93f69c63)
