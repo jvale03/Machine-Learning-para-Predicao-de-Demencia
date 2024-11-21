@@ -6,7 +6,7 @@ DAA group pratical work
 1. [Data Description](#data-description)
 2. [Data Exploration](#data-exploration)
 3. [Data Preprocessing](#data-preprocessing)
-4. [Undefined](#undefined)
+4. [Data Interpretability](#data-interpretability)
 5. [Useful Links / Refs](#useful-links--refs)
 
 ## Data Description
@@ -44,7 +44,8 @@ Relativamente Balanceado
 
 Muito desbalanceado, o que nos indica que é preciso ter cuidado com parâmetros e features.
 
-Analisamos então a distribuição e correlação da idade e do sexo em relação à nossa coluna target.
+Analisamos então a distribuição e correlação da idade e do sexo em relação à nossa coluna target:
+
 ![Figura2](Images/sex_age_distribution.png)
 ![Figura3](Images/sex_age_correlation.png)
 
@@ -58,17 +59,26 @@ Encontramos algumas features constantes, no entanto decidimos não remover preci
 Após a análise das features do tipo `object`, reparamos que existiam features capazes de ser transformadas em uma ou mais features numéricas, podendo trazer informação relevante para os futuros modelos.
 
 
-No que toca a exploração de dados, foi feita uma análise mais profunda não mencionada por não trazer informação considerada relevante numa análise geral.
+No que toca a exploração de dados, foi feita uma análise mais profunda não mencionada por não trazer informação considerada relevante numa exploração global.
 
 ## Data Preprocessing
 ### Feature Target
 No que toca a pré-processamento de dados, começamos por fazer `encoding` da nossa feature **target**, transformando-a numa feature numérica.
 
 ### Object Features
-Seguidamente, como mencionado em [Data Exploration](#non-numeric-features), transformamos features do tipo `object` em várias features novas, serve de exemplo a seguinte transformação:
+Seguidamente, como mencionado em [Data Exploration](#non-numeric-features), transformamos features do tipo `object` em várias features novas, servem de exemplo as seguintes transformações:
 
-![Figura3](/DAA/Images/object_to_num.png)
-![Figura3](/DAA/Images/object_to_num1.png)
+| diagnostics_Mask-original_BoundingBox | 
+|-|
+| (103, 113, 93, 36, 30, 71)| 
+| (32, 104, 3, 54, 10, 89)| 
+
+| x_min | y_min | largura | altura | profundidade | extra
+|-|-|-|-|-|-|
+|103|113|93|36|30|71 
+|32|104|3|54|10|89 
+
+
 
 As restantes features não numéricas foram removidas.
 
@@ -78,12 +88,12 @@ De modo a **padronizar** os dados, recorremos ao método `StandardScaler`. Desta
 
 Por termos um **dataset limpo**, pouco pré-processamento de dados foi necessário, sendo portanto agora mais relevante uma análise das features.
 
-## Interpretabilidade de dados
+## Data Interpretability
 Para analisar a contribuição de cada feature para as previsões finais, recorremos à tecnologia **SHAP** capaz de nos ajudar a entender os outputs dos nossos modelos para cada classe.
 
 Para concretização desta análise, recorremos ao modelo `XGBoost`, um modelo baseado em `DecisionTrees`. 
 
-Por ser um modelo muito **eficiente**, **robusto**, altamente eficaz em encontrar **padrões** e **relações complexas** entre features e ainda lidar bem com **desbalanceamento de classes**, consideramos ser a escolha mais adequada para o problema. 
+Por ser um modelo muito **eficiente**, **robusto**, altamente **eficaz** em encontrar **padrões** e **relações complexas** entre features e ainda lidar bem com **desbalanceamento de classes**, consideramos ser a escolha mais adequada para o problema. 
 
 **A análise aos shap values ainda nao esta concluida, ainda nao pensei no que vamos falar sobre isto na apresentação.**
 
