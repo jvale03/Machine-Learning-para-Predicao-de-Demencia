@@ -40,13 +40,13 @@ Relativamente Balanceado
 - **AD-AD**: 60 (19.7%)
 - **CN-MCI**: 10 (3.2%)
 
-![Figura1](/DAA/Images/target_distribution.png)
+![Figura1](Images/target_distribution.png)
 
 Muito desbalanceado, o que nos indica que é preciso ter cuidado com parâmetros e features.
 
 Analisamos então a distribuição e correlação da idade e do sexo em relação à nossa coluna target.
-![Figura2](/DAA/Images/sex_age_distribution.png)
-![Figura3](/DAA/Images/sex_age_correlation.png)
+![Figura2](Images/sex_age_distribution.png)
+![Figura3](Images/sex_age_correlation.png)
 
 ### NaN Values
 Não foram encontrados nenhuns NaN values nos datasets.
