@@ -31,51 +31,61 @@ DAA group pratical work
 - **Man**: 173 (57%)
 - **Woman**: 132 (43%)
 
-Relatively balanced
+Relativamente Balanceado
 
 #### Transition
-- **CN-CN**: 96
-- **MCI-MCI**: 71
-- **MCI-AD**: 68
-- **AD-AD**: 60
-- **CN-MCI**: 10
+- **CN-CN**: 96 (31.5%)
+- **MCI-MCI**: 71 (23.3%)
+- **MCI-AD**: 68 (22.3%)
+- **AD-AD**: 60 (19.7%)
+- **CN-MCI**: 10 (3.2%)
 
-#### Diagnostics Versions
-- **PyRadiomics**: 2.2.0
-- **Numpy**: 1.18.5
-- **SimpleITK**: 1.2.4
-- **PyWavelet**: 1.1.1
-- **Python**: 3.7.7
+![Figura1](/DAA/Images/target_distribution.png)
 
-#### Diagnostic Images
-- **Dimensionality**: 3
-- **Spacing**: (1.0, 1.0, 1.0)
-- **Size**: (256, 256, 256)
-- **Minimum**: ainda nada concluído
-- **Mean**: ainda nada concluído
-- **Maximum**: ainda nada concluído
+Muito desbalanceado, o que nos indica que é preciso ter cuidado com parâmetros e features.
 
-#### Diagnostic Masks
-- **Spacing**: (1.0, 1.0, 1.0)
-- **Size**: (256, 256, 256)
-- **BoundingBox**: todos os valores são diferentes
-- **VoxelNum**: praticamente todos os valores são diferentes
-- **VolumeNum**: [1,2,3,4] -> Outliers: [1,3,4]
-- **CenterOfMassIndex**: todos os valores são diferentes
-- **CenterOfMass**: todos os valores são diferentes
+Analisamos então a distribuição e correlação da idade e do sexo em relação à nossa coluna target.
+![Figura2](/DAA/Images/sex_age_distribution.png)
+![Figura3](/DAA/Images/sex_age_correlation.png)
 
-#### Configurations
-- **Settings**: valor único para todas as entradas 
-- **EnabledImageTypes**: valor único para todas as entradas
+### NaN Values
+Não foram encontrados nenhuns NaN values nos datasets.
 
-Analisando estes três últimos conjuntos de dados `Diagnostics`, percebemos que certas features com entradas todas iguais podem ser removidas por se tratarem de informação claramente irrelevante, pois apresentam uma correlation completamente **nula** para o nosso `Target`.
+### Nunique Features
+Encontramos algumas features constantes, no entanto decidimos não remover precipitadamente sem uma análise prévia, excluíndo no entanto apenas as features relacionadas com versões das tecnologias usadas.
 
+### Non Numeric Features
+Após a análise das features do tipo `object`, reparamos que existiam features capazes de ser transformadas em uma ou mais features numéricas, podendo trazer informação relevante para os futuros modelos.
+
+
+No que toca a exploração de dados, foi feita uma análise mais profunda não mencionada por não trazer informação considerada relevante numa análise geral.
 
 ## Data Preprocessing
+### Feature Target
+No que toca a pré-processamento de dados, começamos por fazer `encoding` da nossa feature **target**, transformando-a numa feature numérica.
+
+### Object Features
+Seguidamente, como mencionado em [Data Exploration](#non-numeric-features), transformamos features do tipo `object` em várias features novas, serve de exemplo a seguinte transformação:
+
+![Figura3](/DAA/Images/object_to_num.png)
+![Figura3](/DAA/Images/object_to_num1.png)
+
+As restantes features não numéricas foram removidas.
+
+### Data Scaler
+De modo a **padronizar** os dados, recorremos ao método `StandardScaler`. Desta forma, os valores das features são ajustados para uma escala comum, com média 0 e desvio padrão igual a 1, conseguindo **melhorar** assim o desempenho de modelos sensíveis à escala.
 
 
+Por termos um **dataset limpo**, pouco pré-processamento de dados foi necessário, sendo portanto agora mais relevante uma análise das features.
 
-## Undefined
+## Interpretabilidade de dados
+Para analisar a contribuição de cada feature para as previsões finais, recorremos à tecnologia **SHAP** capaz de nos ajudar a entender os outputs dos nossos modelos para cada classe.
+
+Para concretização desta análise, recorremos ao modelo `XGBoost`, um modelo baseado em `DecisionTrees`. 
+
+Por ser um modelo muito **eficiente**, **robusto**, altamente eficaz em encontrar **padrões** e **relações complexas** entre features e ainda lidar bem com **desbalanceamento de classes**, consideramos ser a escolha mais adequada para o problema. 
+
+**A análise aos shap values ainda nao esta concluida, ainda nao pensei no que vamos falar sobre isto na apresentação.**
 
 
 ## Useful Links / Refs
