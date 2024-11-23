@@ -79,7 +79,6 @@ Seguidamente, como mencionado em [Data Exploration](#non-numeric-features), tran
 |32|104|3|54|10|89 
 
 
-
 As restantes features não numéricas foram removidas.
 
 ### Data Scaler
