@@ -7,6 +7,7 @@ DAA group pratical work
 2. [Data Exploration](#data-exploration)
 3. [Data Preprocessing](#data-preprocessing)
 4. [Data Interpretability](#data-interpretability)
+4. [Testing Phase](#testing-phase)
 5. [FAQ](#perguntas-e-respostas)
 6. [Useful Links / Refs](#useful-links--refs)
 
@@ -141,6 +142,7 @@ Basicamente o **BIAS** é a incapacidade de um modelo se adaptar aos dados, ou s
 Assim, é preciso encontrar um **tradeoff** entre o **BIAS** e os scores dos modelos de modo a ter os resultados mais razoáveis (no sentido de bons para diversos casos) possível. O PROBLEMA AQUI É: EU NÃO SEI FAZER ISSO! ainda.
 
 ### O que são SHAP values?
+
 
 ### O que são dados não lineares?
 Bem, por palavras minhas são dados que não apresentam uma forma linear simples com a coluna target, sendo portanto necessário modelos mais complexos para analisar essas relações e esses padrões.
