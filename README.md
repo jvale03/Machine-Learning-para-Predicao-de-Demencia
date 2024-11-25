@@ -95,9 +95,13 @@ Para analisar a contribuição de cada feature para as previsões finais, recorr
 
 Para concretização desta análise, recorremos ao modelo `XGBoost`, um modelo baseado em `DecisionTrees`. 
 
-Por ser um modelo muito **eficiente**, **robusto**, altamente **eficaz** em encontrar **padrões** e **relações complexas** entre features e ainda lidar bem com **desbalanceamento de classes**, consideramos ser a escolha mais adequada para o problema. 
+Por ser um modelo muito **eficiente**, **robusto**, altamente **eficaz** em encontrar **padrões** e **relações complexas** entre features e ainda **pode** lidar bem com **desbalanceamento de classes**, consideramos ser a escolha mais adequada para o problema. 
 
-**A análise aos shap values ainda nao esta concluida, ainda nao pensei no que vamos falar sobre isto na apresentação.**
+Tendo uma explicação mais detalhada abaixo daquilo que são os `SHAP Values`, passo a explicar sucintamente a forma como os usámos para selecionar as features. 
+
+Numa abordagem inicial, de forma a eliminar todos os dados que temos a certeza que são **lixo**, excluímos todas as features em que a média **absoluta** dos **SHAP Values** é igual a 0, pois concluímos que se a média absoluta é 0, o valor para cada entrada também é 0 e portanto é inútil. (x -> y)
+
+Seguidamente, compreendemos que numa análise de values **por classe**, ainda existiam **muitas** features com uma importância nula. Desta forma, achamos por bem remover todas as features que têm valor nulo para **pelo menos 3** classes, mantendo apenas as que tenham impacto em mais que uma. (y -> z)
 
 ## Testing Phase
 Para a fase de testes foram testados vários modelos, passando a numerar:
@@ -142,7 +146,64 @@ Basicamente o **BIAS** é a incapacidade de um modelo se adaptar aos dados, ou s
 Assim, é preciso encontrar um **tradeoff** entre o **BIAS** e os scores dos modelos de modo a ter os resultados mais razoáveis (no sentido de bons para diversos casos) possível. O PROBLEMA AQUI É: EU NÃO SEI FAZER ISSO! ainda.
 
 ### O que são SHAP values?
+Em termos muito simples e resumidos, `SHAP Values` são os valores da contribuição de cada feature em cada entrada. Isto é, para o nosso dataset com 305 entradas e 2181 features, existem `305*2181` SHAP Values, cada feature terá 305 values. 
 
+Tendo isto, existem três formas, que eu saiba, de analisar os values:
+1. **SHAP Values Global**: atribui-se uma **média** de todas as entradas de cada feature, passando assim a existir apenas **um** **valor** por feature, o valor **médio**. 
+Mas isto não é nada bom pois os SHAP Values podem ser negativos ou positivos e bastante **variados** para cada entrada, tornando a média um valor muito **vago** e **nada** **informativo**.
+1. **SHAP Values Local**: esta forma é muito **exaustiva**, passa por analisar a importância das features **por entrada**, sendo necessária apenas para casos mais **pontuais** quando estamos indecisos na remoção ou não de uma feature.
+1. **SHAP Values Por Classe**: este método parece-me ser o mais **razoável**, pois divimos os values por grupos, 5 neste caso para cada classe target. Assim, podemos analisar mais facilmente quais features importam para cada grupo, e, para uma remoçao mais **geral**, remove-se todas as features que são nulas para **pelo menos 3 classes**.
+
+### O que significam os valores dos SHAP Values?
+1. **Null Values**: um valor igual a 0 indica que a feature em **nada** contribuiu para aquela previsão.
+1. **Positive Values**: um shap value positivo indica que aquela feature contribuiu para aumentar a probabilidade de fazer aquela previsão.
+1. **Negative Values**: um valor negativo, como já conseguem imaginar, indica que determinada feature baixou o valor de probabilidade daquela previsão.
+
+Assim parece confuso, mas com um termo prático fica mais simples:
+
+#### Cenário:
+Queremos prever se um paciente tem risco de **desenvolver diabetes** com base nas seguintes **features**:
+- **Idade**
+- **IMC (Índice de Massa Corporal)**
+- **Histórico Familiar**
+- **Nível de Glicose em Jejum**
+- **Atividade Física**  
+A variável alvo (target) é **risco de diabetes** com duas classes: **Sim** ou **Não**.
+
+---
+
+#### Predição:  
+Analisemos os **SHAP values** de uma previsão feita pelo modelo para um paciente.
+
+| **Feature**              | **Valor**     | **SHAP Value** | **Interpretação**                                                                                   |
+|--------------------------|---------------|----------------|-----------------------------------------------------------------------------------------------------|
+| **Idade**               | 55 anos       | **+0.3**       | Ser mais velho aumenta o risco de diabetes, contribuindo positivamente para a previsão.            |
+| **IMC**                 | 18.5 (baixo)  | **-0.2**       | Um IMC baixo reduz o risco de diabetes, contribuindo negativamente para a previsão.                |
+| **Histórico Familiar**  | Sim           | **+0.4**       | Ter histórico familiar de diabetes aumenta o risco, sendo um fator importante na previsão.         |
+| **Nível de Glicose**    | 110 mg/dL     | **+0.6**       | Um nível de glicose elevado é um forte indicativo de risco de diabetes.                            |
+| **Atividade Física**    | Regular       | **-0.1**       | Fazer atividade física regularmente reduz levemente o risco, contribuindo negativamente.           |
+
+---
+
+#### Explicação:
+
+- **Valores Positivos (e.g., +0.6 para Nível de Glicose)**: Indicam que a feature contribui para aumentar a probabilidade de o paciente ter diabetes.
+- **Valores Negativos (e.g., -0.2 para IMC)**: Indicam que a feature reduz a probabilidade de o paciente ter diabetes.
+- **Valores Nulos (0)**: Significam que a feature não impactou a previsão.
+
+---
+
+#### Resultado Final:
+Somando os valores dos SHAP values, obtemos o impacto total de cada feature na previsão.  
+Se o modelo tem um **valor base** (output médio) de 0.2 para a classe "Sim" (risco de diabetes) e somarmos os SHAP values deste paciente:  
+- **Valor Base**: 0.2  
+- **Soma dos SHAP values**:  
+  `+0.3 + (-0.2) + 0.4 + 0.6 + (-0.1) = +1.0`  
+
+A previsão final para o paciente será:  
+**0.2 (base) + 1.0 (soma dos SHAP values) = 1.2 (alta probabilidade de diabetes)**.
+
+Após este exemplo, torna-se mais fácil entender que um SHAP Value negativo nem sempre é indicativo de ser uma má feature, às vezes pode ser um bom contributo para controlar probabilidades.
 
 ### O que são dados não lineares?
 Bem, por palavras minhas são dados que não apresentam uma forma linear simples com a coluna target, sendo portanto necessário modelos mais complexos para analisar essas relações e esses padrões.
