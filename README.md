@@ -223,3 +223,16 @@ Bem, por palavras minhas são dados que não apresentam uma forma linear simples
 11. **Going Deep with SHAP Values**: [Deep SHAP](https://medium.com/biased-algorithms/shap-values-for-multiclass-classification-2a1b93f69c63)
 12. **Tudo e mais alguma coisa**: [ChatGPT](https://chatgpt.com)
 13. **Tudo e mais alguma coisa 2**: [YouTube](https://www.youtube.com)
+
+
+# Recomeço de teste
+1. Remover de forma drástica features com pouca correlação com o target e muita correlação entre si.
+1. Remover de forma drástica features com pouquíssima variância após normalizar os dados.
+1. Padronizar os dados.
+1. Calcular feature importance e SHAP para xgboost
+1. Organizar as features por importância e testar o modelo com cross validation das 30 às 200 features e analisar com quantas features se obtém melhores desempenhos e mais estáveis com o cross validation (ainda por decidir como organizar por importance)
+1. Armazenar todos os dados em memória.
+1. Após essa análise, possivelmente refinar com SHAP Values.
+1. Afinar hyperparametros para o numero de features.
+1. Testar os outros modelos.
+1. Testar os ensembles
