@@ -1,0 +1,1 @@
+Estes modelos são os que tem scores de 35/45 localmente com 34 no kaggle. para 91 features. em principio será o final. no entanto esta com hiperparametros ajustados para 180 features
